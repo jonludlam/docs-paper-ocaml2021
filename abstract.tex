@@ -1,0 +1,123 @@
+\documentclass[a4paper,11pt,twocolumn]{scrartcl}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+
+\usepackage{minted}
+
+\usepackage[dvipsnames]{xcolor}
+\usepackage{xspace}
+\usepackage{fullpage}
+
+\usepackage[scaled=0.8]{DejaVuSansMono} % A decent mono font
+
+\usepackage{enumitem}
+\setitemize{noitemsep,topsep=3pt,parsep=3pt,partopsep=3pt}
+\setenumerate{noitemsep,topsep=3pt,parsep=3pt,partopsep=3pt}
+
+\usepackage[bookmarks,colorlinks=true,citecolor=red]{hyperref}
+\usepackage[noabbrev,capitalize]{cleveref}
+
+
+\title{A Multiverse of Glorious Documentation}
+\author{
+  Lucas \textsc{Pluvinage}\\
+  Tarides
+  \and
+  Jon \textsc{Ludlam}\\
+  University of Cambridge
+}
+\date{}
+
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+
+This talk describes the process of generating documentation for every version
+of every package that can be built from opam repository, and how it is presented
+as a single coherent website that is continuously updated as new packages are
+released and old packages are updated. The challenges of caching, of handling
+different compiler versions, of incompatible libraries, and of OS requirements are 
+all addressed. The process has been implemented as an OCurrent pipeline which
+presents numerous benefits and also some challenges.
+
+\section{The Goal}
+The Opam repository contains many thousands of OCaml packages, many of which
+contain embedded OCamldoc comments in their source code. These can be extracted along with the type
+information to produce documentation of the module interfaces, something that
+has been a core part of the OCaml ecosystem from the very early days, with
+the tool ocamldoc maintained in the same repository as the compiler itself. This
+includes hyperlinking between items, for example, if a type constructor is used
+anywhere in the docs, it is possible to click on it to navigate to the declaration
+of that type.
+
+Ocamldoc focusses on producing what amounts to a nicely typeset and linked version
+of mli files. However, as the language grew and libraries used more features, the documentation produced
+for complex libraries by ocamldoc became less and less useful. Consequently odoc 
+was created, which improved upon ocamldoc with a comprehensive model of the
+language enabling expansion of module type expressions, functors, handling
+of includes, handling of namespaces via 'wrapped' libraries, correct handling of functors and so on, producing
+useful documentation even for libraries such as Jane Street's core. 
+
+Whilst this is a huge improvement on ocamldoc, it relies on type information provided
+by the compiler in the form of the cmt or cmti files. As such, the main drivers of
+odoc, odig and dune, could only operate on a set of packages that are co-installable.
+Our goal was to drop this requirement, and thus extend the documentation process such that it is possible to use odoc to produce a single tree of
+package documentation that covers every single version of every single package found in
+the opam repository.
+
+\section{Dependency Universes}
+At first glance it is not unreasonable to suggest that the solution to this problem is simply
+to sequentially install a particular version of a particular package, obtain its docs via odoc, arranging
+for the results to be put in a suitably named directory -- perhaps "packages/<package name>/<package version/" --
+and repeat for every other version of every other package. Why would this not work?
+The big problem is that the types in a particular version of a package, and therefore the
+documentation for a particular version of a package, may depend upon
+the types in dependent packages not just the package itself. As a simple example, a
+package may expose a Set or Map using the functors in the standard library, and the
+signatures of these are dependent on the version of the compiler rather than the
+version of the package. As a simple consequence of this, the naive solution to this
+problem would end up with inconsistent documentation with many broken hyperlinks.
+
+It is therefore vitally important that we keep track of the exact
+versions of all the dependency packages used to build each subsequent package. This is
+termed the 'dependency universe', and is the transitive closure of the set of the versions
+of opam packages that opam declares is required.
+
+
+
+In order to 
+
+
+For example, the package `astring.0.8.5`
+declares dependencies on ocaml, ocamlbuild, ocamlfind and topkg with various constraints.
+These are solved using the 0install solver, and we might find a resulting dependency universe consisting of
+
+```
+conf-m4.1
+ocaml.4.11.1
+ocamlbuild.0.14.0
+ocamlfind.1.8.1
+topkg.1.0.3
+```
+
+where conf-m4 has been added as a transitive dependency. A simple hash, in this case md5, is
+then used to provide an id for this dependency universe, an
+
+
+\end{abstract}
+
+\section{The model layer}
+
+\paragraph{Module expansion}
+
+\end{document}
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: t
+%%% TeX-command-extra-options: "-shell-escape"
+%%% End:
